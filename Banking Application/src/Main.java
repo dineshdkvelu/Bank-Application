@@ -51,6 +51,7 @@ public class Main {
                                     System.out.println("Enter the amount to be deposited");
                                     double cashDepositAmount = s.nextDouble();
                                     Customer.cashDepositFunction(cashDepositAmount,validateCustomerId);
+
                                 }
                                 break;
                                 case 2:

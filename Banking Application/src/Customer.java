@@ -9,14 +9,16 @@ public class Customer {
     public double accountBalance;
     public String password;
     public String encryptedPassword;
+    public int transactionId;
 
-    public Customer(int customerId,int accountNumber, String name, double accountBalance, String password,String encryptedPassword){
+    public Customer(int customerId,int accountNumber, String name, double accountBalance, String password,String encryptedPassword,int transactionId){
         this.customerId = customerId;
         this.accountNumber = accountNumber;
         this.name = name;
         this.accountBalance = accountBalance;
         this.password = password;
         this.encryptedPassword = encryptedPassword;
+        this.transactionId = transactionId;
     }
 
     public static void addCustomer(String nameofNewCustomer, String newCustomerPassword) throws IOException {
@@ -24,10 +26,10 @@ public class Customer {
         int newCustId = Bank.customers.get(lastEntry).customerId+1;
         int newAccountNumber = Bank.customers.get(lastEntry).accountNumber+1;
         double newAccountBalance = 10000;
-        Bank.customers.add(new Customer(newCustId,newAccountNumber,nameofNewCustomer,newAccountBalance,newCustomerPassword,encyptCustomerPassword(newCustomerPassword)));
-        CustomerFileNameReader addNewCustomer = new CustomerFileNameReader();
-        addNewCustomer.writeNewCustomerinFile();
-        addNewCustomer.createCustomerFile();
+        Bank.customers.add( new Customer(newCustId,newAccountNumber,nameofNewCustomer,newAccountBalance,newCustomerPassword,encyptCustomerPassword(newCustomerPassword),0));
+        //CustomerFileNameReader addNewCustomer = new CustomerFileNameReader();
+        CustomerFileNameReader.writeNewCustomerinFile();
+        CustomerFileNameReader.createCustomerFile();
     }
 
     public static boolean passwordChecker(String password){
@@ -49,18 +51,18 @@ public class Customer {
         }
         return new String(c);
     }
-    public static boolean validateExistingUser(int valiateCustomerId,int validateCustomerAccountNumber,String validateCustomerPassword){
-        if(Bank.customers.get(valiateCustomerId-1).customerId!=valiateCustomerId)
+    public static boolean validateExistingUser(int valdiateCustomerId,int validateCustomerAccountNumber,String validateCustomerPassword){
+        if(Bank.customers.get(valdiateCustomerId-1).customerId!=valdiateCustomerId)
         {
             System.out.println("Customer id is not valid, create new customer");
 
         }
-        if(Bank.customers.get(valiateCustomerId-1).accountNumber!=validateCustomerAccountNumber)
+        if(Bank.customers.get(valdiateCustomerId-1).accountNumber!=validateCustomerAccountNumber)
         {
             System.out.println("Account number is not valid,Try Again");
 
         }
-        if(!Bank.customers.get(valiateCustomerId-1).password.equals(validateCustomerPassword))
+        if(!Bank.customers.get(valdiateCustomerId-1).password.equals(validateCustomerPassword))
         {
             //System.out.println(Bank.customers.get(valiateCustomerId-1).password);
             System.out.println("Password does not match");
@@ -73,12 +75,13 @@ public class Customer {
         }
         return false;
     }
-    public static void cashDepositFunction(double cashDepositAmount,int validateCustomerId){
+    public static void cashDepositFunction(double cashDepositAmount,int validateCustomerId) throws IOException {
         System.out.println("Account Balance is "+Bank.customers.get(validateCustomerId-1).accountBalance);
         Bank.customers.get(validateCustomerId-1).accountBalance = Bank.customers.get(validateCustomerId-1).accountBalance +cashDepositAmount;
         System.out.println("New Account Balance is "+Bank.customers.get(validateCustomerId-1).accountBalance);
+        CustomerFileNameReader.writeCustomerTransactions(validateCustomerId,"Deposit",cashDepositAmount);
     }
-    public static void cashWithdrawalFunction(double casWithdrawalAmount,int validateCustomerId){
+    public static void cashWithdrawalFunction(double casWithdrawalAmount,int validateCustomerId) throws IOException {
         if(Bank.customers.get(validateCustomerId-1).accountBalance<=1000 || (Bank.customers.get(validateCustomerId-1).accountBalance - casWithdrawalAmount)<=1000){
             System.out.println("Withdrawal amount is more than the required minimum balance\nWithdrawal not possible");
         }
@@ -87,15 +90,17 @@ public class Customer {
             System.out.println("Account Balance is "+Bank.customers.get(validateCustomerId-1).accountBalance);
             Bank.customers.get(validateCustomerId-1).accountBalance = Bank.customers.get(validateCustomerId-1).accountBalance - casWithdrawalAmount;
             System.out.println("New Account Balance is "+Bank.customers.get(validateCustomerId-1).accountBalance);
+            CustomerFileNameReader.writeCustomerTransactions(validateCustomerId,"Withdrawal",casWithdrawalAmount);
         }
     }
-    public static void moneyTransferFunction(int transfertoCustomerId, double amounttobeTransfered, int validateCustomerId){
+    public static void moneyTransferFunction(int transfertoCustomerId, double amounttobeTransfered, int validateCustomerId) throws IOException {
         System.out.println("Account Balance is "+Bank.customers.get(validateCustomerId-1).accountBalance);
         if(Bank.customers.get(validateCustomerId-1).accountBalance-1000>=amounttobeTransfered)
         {
             Bank.customers.get(transfertoCustomerId-1).accountBalance = Bank.customers.get(transfertoCustomerId-1).accountBalance+amounttobeTransfered;
             Bank.customers.get(validateCustomerId-1).accountBalance = Bank.customers.get(validateCustomerId-1).accountBalance - amounttobeTransfered;
             System.out.println("New Account balance is "+Bank.customers.get(validateCustomerId-1).accountBalance);
+            CustomerFileNameReader.writeCustomerTransactions(validateCustomerId,"Money Transfer",amounttobeTransfered);
         }
         else
         {
